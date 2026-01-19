@@ -166,6 +166,22 @@ jobs:
             #      detached: true
             #  if: contains( matrix.os, 'windows')
 
+            - name: Locate generated library file
+              id: find_lib
+              run: |
+                  # Find the path to the compiled library file (.so, .dylib, or .dll)
+                  LIB_PATH=$(find rosco -name "libdiscon*.so" -o -name "libdiscon*.dylib" -o -name "libdiscon*.dll" | head -n 1)
+                  echo "Found library at: $LIB_PATH"
+                  # Set the path as an output variable for the next step to use
+                  echo "library_path=$LIB_PATH" >> $GITHUB_OUTPUT
+              shell: bash
+              
+            - name: Upload compiled library artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: compiled-library-${{ matrix.os }}-${{ matrix.python-version }}
+                  path: ${{ steps.find_lib.outputs.library_path }}
+
             - name: Run ROSCO testing
               run: |
                   cd rosco/test
